@@ -13,9 +13,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Http\Livewire\Movies\Index as MoviesIndex;
+use App\Http\Livewire\Movies\Show as MovieShow;
+use App\Http\Livewire\Bookings\SeatSelector;
+use App\Http\Livewire\Bookings\Show as BookingShow;
+
+Route::get('/', MoviesIndex::class)->name('home');
+Route::get('/movies/{movie}', MovieShow::class)->name('movies.show');
+Route::get('/showtimes/{showtime}/select', SeatSelector::class)->name('bookings.select');
+Route::get('/bookings/{booking}', BookingShow::class)->name('bookings.show');
 
 Route::middleware([
     'auth:sanctum',
