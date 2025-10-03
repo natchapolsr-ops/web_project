@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,4 +26,14 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // จ่ายเงิน
+    Route::get('/create-promptpay-charge', [PaymentController::class, 'createPromptpayCharge'])
+        ->name('payment.promptpay');
+
+    // เช็กสถานะ
+    Route::get('/payment-status/{id}', [PaymentController::class, 'checkStatus'])
+        ->name('payment.status');
 });
+
+Route::post('/omise/webhook', [PaymentController::class, 'handleWebhook']);
