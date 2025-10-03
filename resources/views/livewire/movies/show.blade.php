@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-neutral-900 text-white py-10">
+<div class="min-h-screen bg-neutral-900 text-black py-10">
     <div class="max-w-5xl mx-auto">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
@@ -8,7 +8,7 @@
                 <div class="flex items-center justify-between">
                     <div class="text-neutral-300">{{ now()->format('d F Y') }}</div>
                     @if($movie->showtimes->first())
-                    <span class="bg-amber-500/70 text-white px-4 py-2 rounded-lg font-semibold">{{ \Carbon\Carbon::parse($movie->showtimes->first()->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($movie->showtimes->first()->end_time)->format('H:i') }}</span>
+                    <span class="bg-amber-500/70 text-black px-4 py-2 rounded-lg font-semibold">{{ \Carbon\Carbon::parse($movie->showtimes->first()->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($movie->showtimes->first()->end_time)->format('H:i') }}</span>
                     @endif
                 </div>
                 <h1 class="text-2xl font-semibold mt-2">{{ strtoupper($movie->title) }}</h1>

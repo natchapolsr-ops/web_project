@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-neutral-900 text-white py-10">
+<div class="min-h-screen bg-neutral-900 text-black py-10">
     <div class="max-w-5xl mx-auto">
         <h1 class="text-2xl font-semibold mb-6">Your Booking</h1>
 

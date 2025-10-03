@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-neutral-900 text-white">
+<div class="min-h-screen bg-neutral-900 text-black py-10">
     <div class="max-w-7xl mx-auto py-8 px-4">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 bg-neutral-800/60 rounded-xl p-6 relative">
