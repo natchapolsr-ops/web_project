@@ -19,6 +19,7 @@ use App\Http\Livewire\Bookings\SeatSelector;
 use App\Http\Livewire\Bookings\Show as BookingShow;
 
 Route::get('/', MoviesIndex::class)->name('home');
+Route::get('/movies', MoviesIndex::class)->name('movies.index');
 Route::get('/movies/{movie}', MovieShow::class)->name('movies.show');
 Route::get('/showtimes/{showtime}/select', SeatSelector::class)->name('bookings.select');
 Route::get('/bookings/{booking}', BookingShow::class)->name('bookings.show');
