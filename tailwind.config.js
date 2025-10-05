@@ -16,6 +16,21 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                primary: {
+                    DEFAULT: '#b91c1c', // แดงเข้ม
+                    dark: '#7f1d1d',
+                },
+                darkbg: '#18181b', // ดำเข้ม
+                lightbg: '#27272a', // ดำเทา
+            },
+            textColor: {
+                skin: {
+                    base: '#f3f4f6', // สี font หลัก (เทาอ่อน)
+                    muted: '#e5e7eb',
+                    danger: '#f87171',
+                },
+            },
         },
     },
 

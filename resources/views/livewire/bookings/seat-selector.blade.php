@@ -6,55 +6,83 @@
                     <div class="inline-block border border-amber-500 px-6 py-2 rounded">SCREEN</div>
                 </div>
 
-                <div class="space-y-2">
-                    @foreach($seatRows as $rowLabel => $row)
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 text-xs text-neutral-400">{{ $rowLabel }}</div>
-                            <div class="grid grid-cols-18 gap-2 flex-1">
-                                @foreach($row as $seat)
-                                    @php
-                                        $isSelected = $selectedSeats->contains($seat->id);
-                                        $color = match($seat->type) {
-                                            'vip' => 'bg-yellow-600',
-                                            'opera' => 'bg-amber-700',
-                                            'honeymoon' => 'bg-purple-700',
-                                            'disabled' => 'bg-gray-500',
-                                            default => 'bg-red-700'
-                                        };
-                                    @endphp
-                                    <button wire:click="toggleSeat({{ $seat->id }})"
-                                            class="h-6 w-6 rounded-sm {{ $color }} {{ $isSelected ? 'ring-2 ring-white' : '' }}"
-                                            title="{{ $rowLabel }}{{ $seat->number }}">
-                                    </button>
-                                @endforeach
+                <form method="POST" action="{{ route('bookings.store') }}">
+                    @csrf
+                    <input type="hidden" name="showtime_id" value="{{ $showtime->id }}">
+                    <div class="space-y-2">
+                        @foreach($seatRows as $rowLabel => $row)
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 text-xs text-neutral-400">{{ $rowLabel }}</div>
+                                <div class="grid grid-cols-18 gap-2 flex-1">
+                                    @foreach($row as $seat)
+                                        @php
+                                            $isSelected = old('seats', []) && in_array($seat->id, old('seats', []));
+                                            $color = match($seat->type) {
+                                                'vip' => 'bg-yellow-600',
+                                                'opera' => 'bg-amber-700',
+                                                'honeymoon' => 'bg-purple-700',
+                                                'disabled' => 'bg-gray-500',
+                                                default => 'bg-red-700'
+                                            };
+                                        @endphp
+                                        <label class="h-6 w-6 rounded-sm {{ $color }} flex items-center justify-center cursor-pointer {{ $seat->type == 'disabled' ? 'opacity-50 pointer-events-none' : '' }}" title="{{ $rowLabel }}{{ $seat->number }}">
+                                            <input type="checkbox" name="seats[]" value="{{ $seat->id }}" class="hidden" @if($isSelected) checked @endif @if($seat->type == 'disabled') disabled @endif>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                <div class="w-6 text-xs text-neutral-400">{{ $rowLabel }}</div>
                             </div>
-                            <div class="w-6 text-xs text-neutral-400">{{ $rowLabel }}</div>
-                        </div>
-                    @endforeach
-                </div>
+                        @endforeach
+                    </div>
 
-                <div class="mt-8 grid grid-cols-4 gap-4">
-                    <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
-                        <div class="mx-auto h-6 w-6 rounded-sm bg-red-700"></div>
-                        <div class="mt-2 text-sm">Normal</div>
-                        <div class="text-xs text-neutral-300">{{ $showtime->base_price }} THB</div>
+                    <div class="mt-8 grid grid-cols-4 gap-4">
+                        <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
+                            <div class="mx-auto h-6 w-6 rounded-sm bg-red-700"></div>
+                            <div class="mt-2 text-sm">Normal</div>
+                            <div class="text-xs text-neutral-300">{{ $showtime->base_price }} THB</div>
+                        </div>
+                        <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
+                            <div class="mx-auto h-6 w-6 rounded-sm bg-purple-700"></div>
+                            <div class="mt-2 text-sm">Honeymoon</div>
+                            <div class="text-xs text-neutral-300">{{ $showtime->base_price + 20 }} THB</div>
+                        </div>
+                        <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
+                            <div class="mx-auto h-6 w-6 rounded-sm bg-amber-700"></div>
+                            <div class="mt-2 text-sm">Opera Chair</div>
+                            <div class="text-xs text-neutral-300">{{ $showtime->base_price + 300 }} THB</div>
+                        </div>
+                        <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
+                            <div class="mx-auto h-6 w-6 rounded-sm bg-yellow-600"></div>
+                            <div class="mt-2 text-sm">VIP</div>
+                            <div class="text-xs text-neutral-300">{{ $showtime->base_price + 60 }} THB</div>
+                        </div>
                     </div>
-                    <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
-                        <div class="mx-auto h-6 w-6 rounded-sm bg-purple-700"></div>
-                        <div class="mt-2 text-sm">Honeymoon</div>
-                        <div class="text-xs text-neutral-300">{{ $showtime->base_price + 20 }} THB</div>
+                    <div class="mt-6 border-t border-neutral-700 pt-4">
+                        <div class="text-sm text-neutral-400">ที่นั่งที่เลือก</div>
+                        <div class="mt-1 text-white">
+                            @php
+                                $seats = $showtime->theater->seats->whereIn('id', $selectedSeats);
+                                $total = 0;
+                            @endphp
+                            @forelse($seats as $s)
+                                @php $price = $showtime->base_price + $s->price_delta; $total += $price; @endphp
+                                <div class="flex justify-between text-sm">
+                                    <span>{{ $s->row }}{{ $s->number }}</span>
+                                    <span>{{ $price }} THB</span>
+                                </div>
+                            @empty
+                                <div class="text-neutral-500">ยังไม่ได้เลือก</div>
+                            @endforelse
+                            <div class="flex justify-between font-semibold mt-2">
+                                <span>Total</span><span>{{ $total }} THB</span>
+                            </div>
+                        </div>
+                        @error('seats')
+                            <div class="text-red-500 text-xs mt-2">{{ $message }}</div>
+                        @enderror
+                        <button type="submit" class="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg">ชำระเงินและยืนยัน</button>
                     </div>
-                    <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
-                        <div class="mx-auto h-6 w-6 rounded-sm bg-amber-700"></div>
-                        <div class="mt-2 text-sm">Opera Chair</div>
-                        <div class="text-xs text-neutral-300">{{ $showtime->base_price + 300 }} THB</div>
-                    </div>
-                    <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
-                        <div class="mx-auto h-6 w-6 rounded-sm bg-yellow-600"></div>
-                        <div class="mt-2 text-sm">VIP</div>
-                        <div class="text-xs text-neutral-300">{{ $showtime->base_price + 60 }} THB</div>
-                    </div>
-                </div>
+                </form>
             </div>
 
             <div class="bg-neutral-800 rounded-2xl p-6">
@@ -93,15 +121,17 @@
                             <span>Total</span><span>{{ $total }} THB</span>
                         </div>
                     </div>
-                    <x-input-error for="selected" class="mt-2" />
-                    <button wire:click="book" class="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg">ชำระเงินและยืนยัน</button>
+                    @error('seats')
+                        <div class="text-red-500 text-xs mt-2">{{ $message }}</div>
+                    @enderror
+                    <button type="submit" class="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg">ชำระเงินและยืนยัน</button>
+                </form>
                 </div>
             </div>
         </div>
     </div>
+    <style>
+    /* 18 columns for seat grid */
+    .grid-cols-18{grid-template-columns: repeat(18, minmax(0,1fr));}
+    </style>
 </div>
-
-<style>
-/* 18 columns for seat grid */
-.grid-cols-18{grid-template-columns: repeat(18, minmax(0,1fr));}
-</style>

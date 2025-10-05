@@ -2,7 +2,14 @@
     <div class="max-w-5xl mx-auto">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-                <img src="{{ $movie->poster_url }}" class="w-72 h-auto rounded shadow"/>
+                @php
+                    $poster = $movie->poster_url
+                        ? (Str::startsWith($movie->poster_url, ['http://','https://','/'])
+                            ? $movie->poster_url
+                            : asset('images/' . ltrim($movie->poster_url, '/')))
+                        : asset('images/default.png');
+                @endphp
+                <img src="{{ $poster }}" class="w-72 h-auto rounded shadow"/>
             </div>
             <div class="md:col-span-2">
                 <div class="flex items-center justify-between">
@@ -20,8 +27,13 @@
                 </div>
 
                 @if($movie->showtimes->count())
-                    <div class="mt-10">
-                        <a href="{{ route('bookings.select', $movie->showtimes->first()) }}" class="inline-block bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-lg font-semibold">เลือกที่นั่ง</a>
+                    <div class="mt-10 space-y-2">
+                        @foreach($movie->showtimes as $showtime)
+                            <a href="{{ route('bookings.select', $showtime) }}"
+                               class="inline-block bg-amber-600 hover:bg-amber-500 text-black px-6 py-3 rounded-lg font-semibold mr-2 mb-2">
+                                เลือกที่นั่ง
+                            </a>
+                        @endforeach
                     </div>
                 @endif
             </div>

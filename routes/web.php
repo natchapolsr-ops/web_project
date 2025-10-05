@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -17,7 +18,8 @@ use App\Http\Livewire\Movies\Index as MoviesIndex;
 use App\Http\Livewire\Movies\Show as MovieShow;
 use App\Http\Livewire\Bookings\SeatSelector;
 use App\Http\Livewire\Bookings\Show as BookingShow;
-
+use App\Http\Controllers\BookingController;
+Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
 Route::get('/', function () {
     return view('welcome');
 });
