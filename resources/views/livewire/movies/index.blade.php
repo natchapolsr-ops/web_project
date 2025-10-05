@@ -4,9 +4,10 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             @foreach($movies as $movie)
             @php
+                // ถ้าเป็น URL เต็มหรือขึ้นต้นด้วย / ให้ใช้ตรงๆ ถ้าไม่ใช่ให้ชี้ไปที่ public/images/ ตามชื่อไฟล์
                 $poster = Str::startsWith($movie->poster_url, ['http://','https://','/'])
                     ? $movie->poster_url
-                    : asset($movie->poster_url ?? 'https://occ-0-8407-2219.1.nflxso.net/dnm/api/v6/E8vDc_W8CLv7-yMQu8KMEC7Rrr8/AAAABfgDSo3bKLA39qLUxd1bbr9YMMMCrpAfdTuwljzkLKvCmRTXC5yAWrmezCVzc3HTmAsoVaUbyUKCxARsOb_rMEjmx1RacSbQ0M-X.jpg?r=33c');
+                    : asset('images/' . ltrim($movie->poster_url ?? '', '/'));
             @endphp
             <a href="{{ route('movies.show',$movie) }}" class="bg-neutral-800 rounded-lg overflow-hidden hover:ring-2 ring-amber-500 transition flex flex-col items-center">
                 <img src="{{ $poster }}" alt="{{ $movie->title }}" class="h-28 max-w-[100px] object-cover mt-4 mb-2 rounded shadow">

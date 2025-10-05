@@ -63,5 +63,28 @@ class CinemaSeeder extends Seeder
             'end_time' => '16:00:00',
             'base_price' => 99,
         ]);
+
+        // เพิ่มหนังอีกเรื่อง (id=2) พร้อม showtime
+        $movie2 = Movie::updateOrCreate([
+            'title' => 'The king of collosium',
+        ], [
+            'name' => 'The king of collosium',
+            'language' => 'TH',
+            'genre' => 'drama',
+            'poster_url' => 'poster2.png',
+            'description' => 'เรื่องย่อของ The king of collosium',
+        ]);
+
+        Showtime::updateOrCreate([
+            'movie_id' => $movie2->id,
+            'theater_id' => $theater->id,
+            'show_date' => now()->toDateString(),
+            'start_time' => '18:00:00',
+        ], [
+            'end_time' => '20:00:00',
+            'base_price' => 120,
+        ]);
     }
 }
+
+?>
