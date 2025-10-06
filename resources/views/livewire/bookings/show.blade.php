@@ -3,7 +3,14 @@
         <h1 class="text-2xl font-semibold mb-6">Your Booking</h1>
 
         <div class="bg-neutral-700/70 rounded-xl p-4 flex items-center gap-4">
-            <img src="{{ $booking->showtime->movie->poster_url }}" class="w-24 h-28 object-cover rounded"/>
+            @php
+                $poster = $booking->showtime->movie->poster_url
+                    ? (Str::startsWith($booking->showtime->movie->poster_url, ['http://','https://','/'])
+                        ? $booking->showtime->movie->poster_url
+                        : asset('images/' . ltrim($booking->showtime->movie->poster_url, '/')))
+                    : asset('images/default.png');
+            @endphp
+            <img src="{{ $poster }}" class="w-24 h-28 object-cover rounded"/>
             <div class="flex-1 grid grid-cols-3 gap-4 items-center">
                 <div>
                     <div class="text-lg font-semibold">{{ $booking->showtime->movie->title }}</div>

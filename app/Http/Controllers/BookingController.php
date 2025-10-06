@@ -23,7 +23,30 @@ class BookingController extends Controller
     // ตัวอย่างสำหรับสร้าง booking ใหม่
     public function store(Request $request)
     {
-        $booking = Booking::create($request->all());
+        $request->validate([
+            'showtime_id' => 'required|exists:showtimes,id',
+            'seats' => 'required|array|min:1',
+            'seats.*' => 'exists:seats,id',
+        ]);
+
+        $showtime = \App\Models\Showtime::findOrFail($request->showtime_id);
+        $seats = \App\Models\Seat::whereIn('id', $request->seats)->where('theater_id', $showtime->theater_id)->get();
+        $total = 0;
+        $seatData = [];
+        foreach ($seats as $seat) {
+            $price = $showtime->base_price + $seat->price_delta;
+            $total += $price;
+            $seatData[$seat->id] = ['price' => $price];
+        }
+
+        $booking = Booking::create([
+            'user_id' => auth()->id(),
+            'showtime_id' => $showtime->id,
+            'status' => 'paid',
+            'total_amount' => $total,
+        ]);
+        $booking->seats()->attach($seatData);
+
         return redirect()->route('bookings.show', $booking);
     }
 

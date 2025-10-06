@@ -6,36 +6,56 @@
                     <div class="inline-block border border-amber-500 px-6 py-2 rounded">SCREEN</div>
                 </div>
 
+                @php
+                    // หา seat id ที่ถูกจองแล้วใน showtime นี้
+                    $bookedSeatIds = $showtime->bookings()->with('seats')->get()->flatMap->seats->pluck('id')->unique()->toArray();
+                    $totalSeats = $showtime->theater->seats->count();
+                    $availableSeats = $totalSeats - count($bookedSeatIds);
+                @endphp
+                <div class="mb-4 text-right text-sm text-neutral-300">
+                    เหลือที่นั่ง {{ $availableSeats }} / {{ $totalSeats }}
+                </div>
                 <form method="POST" action="{{ route('bookings.store') }}">
                     @csrf
                     <input type="hidden" name="showtime_id" value="{{ $showtime->id }}">
                     <div class="space-y-2">
                         @foreach($seatRows as $rowLabel => $row)
-                            <div class="flex items-center gap-2">
-                                <div class="w-6 text-xs text-neutral-400">{{ $rowLabel }}</div>
+                            @php
+                                // หา type หลักของแถวนี้ (ใช้ type ของที่นั่งตัวแรกในแถว)
+                                $rowType = $row[0]->type ?? 'normal';
+                                $typeLabel = [
+                                    'normal' => 'Normal',
+                                    'honeymoon' => 'Honeymoon',
+                                    'vip' => 'VIP',
+                                    'opera' => 'Opera',
+                                    'disabled' => 'Disabled',
+                                ][$rowType] ?? ucfirst($rowType);
+                            @endphp
+                            <div class="flex items-center gap-4">
+                                <div class="w-20 text-xs text-neutral-400 flex flex-col items-center justify-center">
+                                    <span class="font-bold text-base leading-none">{{ $rowLabel }}</span>
+                                    <span class="text-[11px] text-neutral-500 mt-1">{{ $typeLabel }}</span>
+                                </div>
                                 <div class="grid grid-cols-18 gap-2 flex-1">
                                     @foreach($row as $seat)
                                         @php
                                             $isSelected = old('seats', []) && in_array($seat->id, old('seats', []));
-                                            $color = match($seat->type) {
-                                                'vip' => 'bg-yellow-600',
-                                                'opera' => 'bg-amber-700',
-                                                'honeymoon' => 'bg-purple-700',
-                                                'disabled' => 'bg-gray-500',
-                                                default => 'bg-red-700'
-                                            };
+                                            $isBooked = in_array($seat->id, $bookedSeatIds);
                                         @endphp
-                                        <label class="h-6 w-6 rounded-sm {{ $color }} flex items-center justify-center cursor-pointer {{ $seat->type == 'disabled' ? 'opacity-50 pointer-events-none' : '' }}" title="{{ $rowLabel }}{{ $seat->number }}">
-                                            <input type="checkbox" name="seats[]" value="{{ $seat->id }}" class="hidden" @if($isSelected) checked @endif @if($seat->type == 'disabled') disabled @endif>
+                                        <label class="flex items-center justify-center {{ $isBooked ? 'opacity-30 pointer-events-none' : '' }} {{ $seat->type == 'disabled' ? 'opacity-50 pointer-events-none' : '' }}" title="{{ $rowLabel }}{{ $seat->number }}{{ $isBooked ? ' (จองแล้ว)' : '' }}">
+                                            <input type="checkbox" name="seats[]" value="{{ $seat->id }}" data-price="{{ $showtime->base_price + $seat->price_delta }}" class="seat-checkbox" @if($isSelected) checked @endif @if($seat->type == 'disabled' || $isBooked) disabled @endif>
                                         </label>
                                     @endforeach
                                 </div>
-                                <div class="w-6 text-xs text-neutral-400">{{ $rowLabel }}</div>
+                                <div class="w-20 text-xs text-neutral-400 flex flex-col items-center justify-center">
+                                    <span class="font-bold text-base leading-none">{{ $rowLabel }}</span>
+                                    <span class="text-[11px] text-neutral-500 mt-1">{{ $typeLabel }}</span>
+                                </div>
                             </div>
                         @endforeach
                     </div>
 
-                    <div class="mt-8 grid grid-cols-4 gap-4">
+                    <div class="mt-8 grid grid-cols-3 gap-4">
                         <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
                             <div class="mx-auto h-6 w-6 rounded-sm bg-red-700"></div>
                             <div class="mt-2 text-sm">Normal</div>
@@ -47,11 +67,6 @@
                             <div class="text-xs text-neutral-300">{{ $showtime->base_price + 20 }} THB</div>
                         </div>
                         <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
-                            <div class="mx-auto h-6 w-6 rounded-sm bg-amber-700"></div>
-                            <div class="mt-2 text-sm">Opera Chair</div>
-                            <div class="text-xs text-neutral-300">{{ $showtime->base_price + 300 }} THB</div>
-                        </div>
-                        <div class="text-center bg-neutral-700/60 rounded-2xl p-4 border border-amber-600">
                             <div class="mx-auto h-6 w-6 rounded-sm bg-yellow-600"></div>
                             <div class="mt-2 text-sm">VIP</div>
                             <div class="text-xs text-neutral-300">{{ $showtime->base_price + 60 }} THB</div>
@@ -59,7 +74,7 @@
                     </div>
                     <div class="mt-6 border-t border-neutral-700 pt-4">
                         <div class="text-sm text-neutral-400">ที่นั่งที่เลือก</div>
-                        <div class="mt-1 text-white">
+                        <div class="mt-1 text-black">
                             @php
                                 $seats = $showtime->theater->seats->whereIn('id', $selectedSeats);
                                 $total = 0;
@@ -74,20 +89,27 @@
                                 <div class="text-neutral-500">ยังไม่ได้เลือก</div>
                             @endforelse
                             <div class="flex justify-between font-semibold mt-2">
-                                <span>Total</span><span>{{ $total }} THB</span>
+                                <span>Total</span><span id="total-price">{{ $total }} THB</span>
                             </div>
                         </div>
                         @error('seats')
                             <div class="text-red-500 text-xs mt-2">{{ $message }}</div>
                         @enderror
-                        <button type="submit" class="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg">ชำระเงินและยืนยัน</button>
+                        <button type="submit" class="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded-lg">ชำระเงินและยืนยัน</button>
                     </div>
                 </form>
             </div>
 
             <div class="bg-neutral-800 rounded-2xl p-6">
                 <div class="flex gap-4">
-                    <img src="{{ $showtime->movie->poster_url }}" class="w-24 h-32 object-cover rounded" />
+                    @php
+                        $poster = $showtime->movie->poster_url
+                            ? (Str::startsWith($showtime->movie->poster_url, ['http://','https://','/'])
+                                ? $showtime->movie->poster_url
+                                : asset('images/' . ltrim($showtime->movie->poster_url, '/')))
+                            : asset('images/default.png');
+                    @endphp
+                    <img src="{{ $poster }}" class="w-24 h-32 object-cover rounded" />
                     <div>
                         <div class="text-neutral-300">{{ $showtime->movie->title }}</div>
                         <div class="text-xs text-neutral-400">{{ $showtime->movie->language }}</div>
@@ -102,30 +124,7 @@
                 </div>
 
                 <div class="mt-6 border-t border-neutral-700 pt-4">
-                    <div class="text-sm text-neutral-400">ที่นั่งที่เลือก</div>
-                    <div class="mt-1 text-white">
-                        @php
-                            $seats = $showtime->theater->seats->whereIn('id', $selectedSeats);
-                            $total = 0;
-                        @endphp
-                        @forelse($seats as $s)
-                            @php $price = $showtime->base_price + $s->price_delta; $total += $price; @endphp
-                            <div class="flex justify-between text-sm">
-                                <span>{{ $s->row }}{{ $s->number }}</span>
-                                <span>{{ $price }} THB</span>
-                            </div>
-                        @empty
-                            <div class="text-neutral-500">ยังไม่ได้เลือก</div>
-                        @endforelse
-                        <div class="flex justify-between font-semibold mt-2">
-                            <span>Total</span><span>{{ $total }} THB</span>
-                        </div>
-                    </div>
-                    @error('seats')
-                        <div class="text-red-500 text-xs mt-2">{{ $message }}</div>
-                    @enderror
-                    <button type="submit" class="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg">ชำระเงินและยืนยัน</button>
-                </form>
+                    {{-- ตัดส่วนแสดงที่นั่งที่เลือกและ Total ฝั่งขวาออก --}}
                 </div>
             </div>
         </div>
@@ -134,4 +133,19 @@
     /* 18 columns for seat grid */
     .grid-cols-18{grid-template-columns: repeat(18, minmax(0,1fr));}
     </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateTotal() {
+            let total = 0;
+            document.querySelectorAll('.seat-checkbox:checked').forEach(cb => {
+                total += parseInt(cb.getAttribute('data-price')) || 0;
+            });
+            document.getElementById('total-price').textContent = total + ' THB';
+        }
+        document.querySelectorAll('.seat-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateTotal);
+        });
+        updateTotal();
+    });
+    </script>
 </div>
