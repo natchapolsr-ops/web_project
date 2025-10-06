@@ -26,3 +26,19 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
+
+// About page route
+Route::get('/about', function () {
+    return view('About');
+})->name('about');
+
+// Movie routes
+use App\Http\Controllers\MovieController;
+use App\Http\Controllers\AuthController;
+
+Route::get('/movie', [MovieController::class, 'index'])->name('movie.index');
+Route::get('/movie/{id}', [MovieController::class, 'show'])->name('movie.show');
+
+// Authentication routes
+Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

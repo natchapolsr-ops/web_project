@@ -1,60 +1,77 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register</title>
+    <style>
+        :root{
+            --maroon:#7b1012;
+            --maroon-dark:#640b0c;
+            --bg:#222326;
+        }
+        html,body{height:100%;margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:#fff}
+        /* top bar */
+        .topbar{height:64px;background:var(--maroon);border-bottom:4px solid #5a2a6e;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+        .menu-left{display:flex;gap:20px;align-items:center;margin-left:12px}
+        .menu-left a{color:#fff;text-decoration:none;font-size:18px}
 
-        <x-validation-errors class="mb-4" />
+        main{min-height:calc(100% - 144px);display:flex;align-items:center;justify-content:center;padding:20px}
+        .panel{width:520px;max-width:90%;text-align:center}
 
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
+        h1{font-size:36px;margin:0 0 24px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.7)}
 
-            <div>
-                <x-label for="name" value="{{ __('Name') }}" />
-                <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            </div>
+        .form{background:transparent;padding:10px}
+        .input{display:block;margin:12px auto;width:320px;max-width:86%;height:40px;border-radius:24px;background:var(--maroon);border:none;color:#fff;text-align:center;font-size:16px;box-shadow:0 4px 0 rgba(0,0,0,0.3);}
+        .input::placeholder{color:rgba(255,255,255,0.9)}
 
-            <div class="mt-4">
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            </div>
+        .btn{display:inline-block;margin-top:12px;padding:8px 36px;border-radius:20px;background:var(--maroon-dark);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,0.4)}
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            </div>
+        /* bottom bar with seats effect */
+        .bottombar{height:80px;background:var(--maroon);position:relative;overflow:hidden}
+        .seats{position:absolute;left:0;right:0;bottom:18px;height:36px;background:repeating-linear-gradient(90deg,#a32024 0 40px,#7b1012 40px 80px);transform:skewY(-2deg);}
 
-            <div class="mt-4">
-                <x-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-            </div>
+        /* responsive tweaks */
+        @media(max-width:420px){.input{width:260px}}
 
-            @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
-                <div class="mt-4">
-                    <x-label for="terms">
-                        <div class="flex items-center">
-                            <x-checkbox name="terms" id="terms" required />
+        /* Error message styling */
+        .error{color:#ffaaaa;margin:4px 0;font-size:14px}
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="menu-left">
+            <a href="{{ url('/movie') }}">Home</a>
+            <a href="{{ url('/login') }}">login</a>
+        </div>
+    </div>
 
-                            <div class="ms-2">
-                                {!! __('I agree to the :terms_of_service and :privacy_policy', [
-                                        'terms_of_service' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Terms of Service').'</a>',
-                                        'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Privacy Policy').'</a>',
-                                ]) !!}
-                            </div>
-                        </div>
-                    </x-label>
+    <main>
+        <div class="panel">
+            <h1>Register</h1>
+
+            @if($errors->any())
+                <div class="error">
+                    {{ $errors->first() }}
                 </div>
             @endif
 
-            <div class="flex items-center justify-end mt-4">
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                    {{ __('Already registered?') }}
-                </a>
+            <form method="POST" action="{{ route('register') }}" class="form">
+                @csrf
+                <input type="text" name="mail" class="input" placeholder="Email" value="{{ old('mail') }}" required>
+                <input type="text" name="username" class="input" placeholder="Username" value="{{ old('username') }}" required>
+                <input type="number" name="age" class="input" placeholder="Age" value="{{ old('age') }}" required>
+                <input type="password" name="password" class="input" placeholder="Password" required>
+                <input type="password" name="password_confirmation" class="input" placeholder="Confirm Password" required>
+                
+                <button type="submit" class="btn">Register</button>
+            </form>
+        </div>
+    </main>
 
-                <x-button class="ms-4">
-                    {{ __('Register') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
-</x-guest-layout>
+    <div class="bottombar">
+        <div class="seats"></div>
+    </div>
+</body>
+</html>
+
