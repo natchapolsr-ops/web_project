@@ -36,4 +36,3 @@ Route::middleware([
         ->name('payment.status');
 });
 
-Route::post('/omise/webhook', [PaymentController::class, 'handleWebhook']);
